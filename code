@@ -1,0 +1,36 @@
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+log_file_path = "/path/to/your/log_file.log"  # Replace with the path to your log file
+
+
+class LogFileEventHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        # Check if the event is for the log file
+        if event.src_path == log_file_path and not event.is_directory:
+            # Read the new log entries
+            with open(log_file_path, "r") as file:
+                new_entries = file.readlines()
+
+            # Print the new log entries
+            for entry in new_entries:
+                print(entry)
+
+
+if __name__ == "__main__":
+    # Create the observer and event handler
+    event_handler = LogFileEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=log_file_path.rpartition("/")[0], recursive=False)
+
+    # Start the observer
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+
+    observer.join()
